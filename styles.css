@@ -142,10 +142,21 @@ body.theme-cold .weather-layer span { width:2px;height:40px;border-radius:0;back
 .evidence-item strong { display:block;font-size:.88rem;margin-bottom:3px; }
 .evidence-item span { font-family:var(--font-sans);font-size:.7rem;color:var(--muted);line-height:1.5; }
 .character-card { display:flex;gap:11px;align-items:center;border-top:1px solid rgba(74,58,42,.17);padding-top:15px;margin-top:12px; }
-.portrait { flex:0 0 50px;width:50px;height:50px;border-radius:50%;background-size:cover;background-position:center;border:2px solid rgba(126,51,43,.25); }
-.portrait-linyan { background-image:radial-gradient(circle at 50% 35%,#e3c6a2 0 20%,transparent 21%),linear-gradient(135deg,#463f39 0 58%,#2a2522 59%); }
-.portrait-suwan { background-image:radial-gradient(circle at 50% 35%,#dec6a6 0 20%,transparent 21%),linear-gradient(135deg,#777064 0 58%,#4a433b 59%); }
-.portrait-zhouman { background-image:radial-gradient(circle at 50% 35%,#d5b48e 0 20%,transparent 21%),linear-gradient(135deg,#5d554a 0 58%,#34302b 59%); }
+.portrait {
+  flex:0 0 66px;
+  width:66px;
+  height:78px;
+  border-radius:3px;
+  background-size:cover;
+  background-position:center 22%;
+  border:1px solid rgba(126,51,43,.32);
+  box-shadow:0 5px 14px rgba(48,39,31,.18), inset 0 0 0 3px rgba(245,239,221,.32);
+}
+.portrait-linyan { background-image:url("assets/portraits/linyan.webp"); }
+.portrait-linwanzhou { background-image:url("assets/portraits/linwanzhou.webp"); }
+.portrait-suwan { background-image:url("assets/portraits/suwan.webp"); }
+.portrait-zhouman { background-image:url("assets/portraits/zhouman.webp"); }
+.portrait-ferryman { background-image:url("assets/portraits/ferryman.webp"); }
 .speaker-name { color:var(--red);font-weight:700;font-size:.86rem; }
 .character-card p { margin:3px 0 0;font-size:.78rem;line-height:1.55;color:var(--muted); }
 
@@ -229,3 +240,8 @@ body.reduce-motion *,body.reduce-motion *::before,body.reduce-motion *::after { 
   .ending-content{padding:26px 18px}
 }
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important}}
+
+@media (max-width:560px) {
+  .character-card { align-items:flex-start; }
+  .portrait { flex-basis:58px;width:58px;height:70px; }
+}

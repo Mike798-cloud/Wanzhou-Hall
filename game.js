@@ -479,6 +479,23 @@ function renderChapter() {
 function toChineseNumber(n) { return ['零','一','二','三','四','五'][n] || String(n); }
 function sceneCaptionForChapter(ch) { return ['','青溪镇 · 晚舟堂檐下','青溪镇 · 旧私塾雨窗','青溪镇 · 石桥老渡','后山 · 雾隐药庐','青溪镇 · 桂雨庭院'][ch]; }
 
+const portraitMap = {
+  '林砚': 'linyan',
+  '林晚舟': 'linwanzhou',
+  '林晚舟·家书': 'linwanzhou',
+  '苏婉': 'suwan',
+  '周满': 'zhouman',
+  '老更夫': 'ferryman'
+};
+
+function setPortrait(person) {
+  const key = portraitMap[person] || 'linyan';
+  const spokenName = person.replace('·家书', '');
+  els.portrait.className = `portrait portrait-${key}`;
+  els.portrait.setAttribute('aria-label', `${spokenName}的民国旧照式肖像`);
+  els.speakerName.textContent = person;
+}
+
 function setTheme(theme, mood) {
   [...document.body.classList].filter(c => c.startsWith('theme-')).forEach(c => document.body.classList.remove(c));
   document.body.classList.add(`theme-${theme}`);
@@ -488,8 +505,7 @@ function setTheme(theme, mood) {
 
 function renderChapter1() {
   setTheme('warm','淡墨暖纸 · 檐雨初歇');
-  els.portrait.className = 'portrait portrait-linyan';
-  els.speakerName.textContent = '林砚';
+  setPortrait('林砚');
   if (!hasPuzzle('c1-herbs')) {
     currentPuzzleId = 'c1-herbs';
     els.speakerThought.textContent = '“晚辈只为收整旧宅而来。祖上的那桩污名，我原不愿再提。”';
@@ -535,8 +551,7 @@ function renderChapter1() {
 
 function renderChapter2() {
   setTheme('cool','青灰旧卷 · 细雨入窗');
-  els.portrait.className = 'portrait portrait-zhouman';
-  els.speakerName.textContent = '周满';
+  setPortrait('周满');
   if (!hasPuzzle('c2-stems')) {
     currentPuzzleId = 'c2-stems';
     els.speakerThought.textContent = '“借拆屋之名请你归来，是因有些旧账，断不能同瓦砾一道埋了。”';
@@ -568,8 +583,7 @@ function renderChapter2() {
 function renderChapter3() {
   const reversed = hasPuzzle('c3-tablet');
   setTheme(reversed ? 'fog' : 'cool', reversed ? '墨雾漫江 · 旧说动摇' : '烟雨渡口 · 钟声隔水');
-  els.portrait.className = 'portrait portrait-zhouman';
-  els.speakerName.textContent = '老更夫';
+  setPortrait('老更夫');
   if (!hasPuzzle('c3-bell')) {
     currentPuzzleId = 'c3-bell';
     els.speakerThought.textContent = '“那一夜装了三船药箱。林掌柜只留一句：桥可缓，人命不可缓。”';
@@ -596,8 +610,7 @@ function renderChapter3() {
 function renderChapter4() {
   const kinship = hasPuzzle('c4-relics');
   setTheme(kinship ? 'healing' : 'cold', kinship ? '灰雾渐散 · 暖光回归' : '冷调褪色 · 暗角加深');
-  els.portrait.className = kinship ? 'portrait portrait-suwan' : 'portrait portrait-linyan';
-  els.speakerName.textContent = kinship ? '苏婉' : '林砚';
+  setPortrait(kinship ? '苏婉' : '林砚');
   if (!hasPuzzle('c4-letters')) {
     currentPuzzleId = 'c4-letters';
     els.speakerThought.textContent = '“祖父并非仓皇出走。他把旁人的退路安排妥当，才独自隐入山中。”';
@@ -620,7 +633,8 @@ function renderChapter4() {
   }
   if (!hasPuzzle('c4-relics')) {
     currentPuzzleId = 'c4-relics';
-    els.speakerThought.textContent = '“信尾屡次提到苏婉、幼子与半枚银锁。阿婆为何守了半生，仍不肯相认？”';
+    setPortrait('林晚舟·家书');
+    els.speakerThought.textContent = '“若官差来问，只说我携款逃了。孩子平安，银锁另一半留给他。”';
     els.storyContent.innerHTML = `<p>药庐木箱里留着半枚银锁、一张母子旧照、几页药方和桂花糕方。苏婉阿婆此时赶到门口，颈间同样挂着半枚银锁。</p><div class="dialogue"><span class="speaker">苏婉：</span>“有些名分一旦说破，晚舟替众人挡下的祸，怕要循声回来。”</div>`;
     els.objectiveText.textContent = '把四件遗物与阿婆身上的对应细节配对。';
     renderRelicPuzzle();
@@ -635,8 +649,7 @@ function renderChapter4() {
 
 function renderChapter5() {
   setTheme(state.ending === 'silent' ? 'dusk' : state.ending ? 'clear' : 'healing', state.ending === 'silent' ? '薄暮微凉 · 安静沉淀' : '庭院暖光 · 桂影浮动');
-  els.portrait.className = 'portrait portrait-linyan';
-  els.speakerName.textContent = '林砚';
+  setPortrait('林砚');
   if (!hasPuzzle('c5-chain')) {
     currentPuzzleId = 'c5-chain';
     els.speakerThought.textContent = '“每一句结论都须有物证相托，否则所谓真相，也不过是另一场流言。”';
