@@ -32,9 +32,9 @@ body.theme-cover::before{background:url("assets/ink_cover.webp") center/cover no
 body.theme-warm::before{background:linear-gradient(rgba(227,222,208,.55),rgba(214,219,213,.73)),url("assets/ink_cover.webp") center/cover fixed no-repeat!important}
 body.theme-cool::before{background:linear-gradient(rgba(201,213,211,.72),rgba(204,214,213,.8)),url("assets/ink_ferry.webp") center/cover fixed no-repeat!important}
 body.theme-fog::before{background:linear-gradient(rgba(206,213,211,.82),rgba(187,198,196,.86)),url("assets/ink_ferry.webp") center/cover fixed no-repeat!important}
-body.theme-cold::before{background:linear-gradient(rgba(181,194,193,.82),rgba(175,187,186,.9)),url("assets/ink_hut.webp") center/cover fixed no-repeat!important}
-body.theme-healing::before,body.theme-clear::before{background:linear-gradient(rgba(232,227,211,.68),rgba(220,225,216,.72)),url("assets/ink_courtyard.webp") center/cover fixed no-repeat!important}
-body.theme-dusk::before{background:linear-gradient(rgba(151,161,160,.82),rgba(116,129,128,.88)),url("assets/ink_courtyard.webp") center/cover fixed no-repeat!important}
+body.theme-cold::before{background:linear-gradient(rgba(181,194,193,.82),rgba(175,187,186,.9)),url("assets/ink_hut_hd.webp") center/cover fixed no-repeat!important}
+body.theme-healing::before,body.theme-clear::before{background:linear-gradient(rgba(232,227,211,.68),rgba(220,225,216,.72)),url("assets/ink_courtyard_hd.webp") center/cover fixed no-repeat!important}
+body.theme-dusk::before{background:linear-gradient(rgba(151,161,160,.82),rgba(116,129,128,.88)),url("assets/ink_courtyard_hd.webp") center/cover fixed no-repeat!important}
 
 .weather-layer{z-index:1;opacity:.58;mix-blend-mode:screen}
 .weather-layer::before,.weather-layer::after{content:"";position:absolute;inset:-12%;pointer-events:none}

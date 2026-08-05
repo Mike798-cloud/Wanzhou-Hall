@@ -4,11 +4,11 @@ const SAVE_KEY = 'wanzhoutang_save_v1';
 const BACKUP_KEY = 'wanzhoutang_save_backup_v1';
 
 const chapterMeta = [
-  { id: 1, title: '归乡', subtitle: '晚舟旧堂', scene: 'assets/ink_shop.webp', alt: '荒废而整洁的晚舟堂旧药铺内景' },
-  { id: 2, title: '残卷', subtitle: '私塾密码', scene: 'assets/ink_school.webp', alt: '阴冷的废弃民国私塾内景' },
+  { id: 1, title: '归乡', subtitle: '晚舟旧堂', scene: 'assets/ink_shop_hd.webp', alt: '荒废而整洁的晚舟堂旧药铺内景' },
+  { id: 2, title: '残卷', subtitle: '私塾密码', scene: 'assets/ink_school_hd.webp', alt: '阴冷的废弃民国私塾内景' },
   { id: 3, title: '钟鸣', subtitle: '渡口密讯', scene: 'assets/ink_ferry.webp', alt: '阴云下的青溪渡口与旧钟亭' },
-  { id: 4, title: '药庐', subtitle: '隐忍真相', scene: 'assets/ink_hut.webp', alt: '后山深处被树林包围的旧药庐' },
-  { id: 5, title: '余响', subtitle: '青溪终章', scene: 'assets/ink_courtyard.webp', alt: '阳光重新照进晚舟堂庭院，桂花树静静开放' }
+  { id: 4, title: '药庐', subtitle: '隐忍真相', scene: 'assets/ink_hut_hd.webp', alt: '后山深处被树林包围的旧药庐' },
+  { id: 5, title: '余响', subtitle: '青溪终章', scene: 'assets/ink_courtyard_hd.webp', alt: '阳光重新照进晚舟堂庭院，桂花树静静开放' }
 ];
 
 const clueCatalog = {
@@ -789,15 +789,15 @@ function renderEndingChoices() {
 function showEnding(type) {
   const endings = {
     public: {
-      tag:'结局一 · 立碑正名', title:'天光之下', theme:'clear', bg:'assets/ink_courtyard.webp',
+      tag:'结局一 · 立碑正名', title:'天光之下', theme:'clear', bg:'assets/ink_courtyard_hd.webp',
       text:'你将账本、家书与官差文书交给省城报馆。林晚舟的名字终于从“卷款逃犯”改回“青溪义士”。碑前来的人很多，有敬意，也有猎奇。苏婉站在人群外，没有上前。她说，晚舟若还在，大概只会问桥是否牢、药是否够。你明白，正名抚平了一个名字，却无法让往事重新安静。'
     },
     silent: {
-      tag:'结局二 · 沉默守秘', title:'薄暮无碑', theme:'dusk', bg:'assets/ink_courtyard.webp',
+      tag:'结局二 · 沉默守秘', title:'薄暮无碑', theme:'dusk', bg:'assets/ink_courtyard_hd.webp',
       text:'你没有公开旧案，只把证据封存在林家木箱。晚舟堂被修好，苏婉终于可以在院里被你叫一声祖母。镇民仍在旧碑前重复当年的说法，你偶尔想辩解，最终只是把药铺重新开门。这个选择保护了活着的人，也让一个名字继续承受误解。'
     },
     legacy: {
-      tag:'结局三 · 烟火人间', title:'善意有后来', theme:'healing', bg:'assets/ink_courtyard.webp',
+      tag:'结局三 · 烟火人间', title:'善意有后来', theme:'healing', bg:'assets/ink_courtyard_hd.webp',
       text:'你没有为林晚舟塑一尊无瑕的像，也没有把真相锁回箱底。药庐成为义诊室，晚舟堂的一角陈列经过隐私处理的旧账与药方。孩子们知道，曾有人让桥晚建一年，让一村人多活许多年。苏婉在桂花树下教你做糕。故事不再只是碑上的定论，而成为镇上继续发生的善意。'
     }
   };
