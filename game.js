@@ -4,11 +4,11 @@ const SAVE_KEY = 'wanzhoutang_save_v1';
 const BACKUP_KEY = 'wanzhoutang_save_backup_v1';
 
 const chapterMeta = [
-  { id: 1, title: '归乡', subtitle: '晚舟旧堂', scene: 'assets/scene_shop.svg', alt: '荒废而整洁的晚舟堂旧药铺内景' },
-  { id: 2, title: '残卷', subtitle: '私塾密码', scene: 'assets/scene_school.svg', alt: '阴冷的废弃民国私塾内景' },
-  { id: 3, title: '钟鸣', subtitle: '渡口密讯', scene: 'assets/scene_ferry.svg', alt: '阴云下的青溪渡口与旧钟亭' },
-  { id: 4, title: '药庐', subtitle: '隐忍真相', scene: 'assets/scene_hut.svg', alt: '后山深处被树林包围的旧药庐' },
-  { id: 5, title: '余响', subtitle: '青溪终章', scene: 'assets/scene_courtyard.svg', alt: '阳光重新照进晚舟堂庭院，桂花树静静开放' }
+  { id: 1, title: '归乡', subtitle: '晚舟旧堂', scene: 'assets/ink_shop.webp', alt: '荒废而整洁的晚舟堂旧药铺内景' },
+  { id: 2, title: '残卷', subtitle: '私塾密码', scene: 'assets/ink_school.webp', alt: '阴冷的废弃民国私塾内景' },
+  { id: 3, title: '钟鸣', subtitle: '渡口密讯', scene: 'assets/ink_ferry.webp', alt: '阴云下的青溪渡口与旧钟亭' },
+  { id: 4, title: '药庐', subtitle: '隐忍真相', scene: 'assets/ink_hut.webp', alt: '后山深处被树林包围的旧药庐' },
+  { id: 5, title: '余响', subtitle: '青溪终章', scene: 'assets/ink_courtyard.webp', alt: '阳光重新照进晚舟堂庭院，桂花树静静开放' }
 ];
 
 const clueCatalog = {
@@ -17,7 +17,7 @@ const clueCatalog = {
   epidemic_note: { title: '私塾隐句', text: '课案按天干排序后出现“山中有疫，药不可缓”。旧案发生时，邻乡正有疫情。' },
   morse_table: { title: '电报码对照表', text: '林晚舟曾学习电报技术。药柜刻痕可译为 YAO，即“药”。' },
   bell_message: { title: '渡口钟讯', text: '钟鸣长短音译为 HOU SHAN，指向“后山”。与“药”字线索合并，地点应是后山药庐。' },
-  tablet_words: { title: '功德碑暗刻', text: '碑后刻着：“桥缓建，人先救，罪我一人担。”卷款流言第一次出现裂缝。' },
+  tablet_words: { title: '功德碑暗刻', text: '碑后刻着：“桥缓建，人先救；若有罪责，我一人担。”卷款流言第一次出现裂缝。' },
   letters_truth: { title: '六封家书', text: '家书时序证明：林晚舟主动承认携款潜逃，以免官府追究全镇与保长。' },
   paired_relics: { title: '成对遗物', text: '半枚银锁、同源笔迹与婴儿襁褓证明：守宅阿婆苏婉，是林砚的亲祖母。' },
   final_chain: { title: '完整证据链', text: '药款救灾、自污保镇、银锁认亲三条链互相印证，旧案真相已经闭合。' }
@@ -102,6 +102,8 @@ class AmbientAudio {
     this.mode = 'warm';
     this.enabled = true;
     this.step = 0;
+    this.rainSource = null;
+    this.rainGain = null;
   }
   async init() {
     if (!this.ctx) {
@@ -109,8 +111,9 @@ class AmbientAudio {
       if (!AudioContext) return;
       this.ctx = new AudioContext();
       this.master = this.ctx.createGain();
-      this.master.gain.value = 0.22;
+      this.master.gain.value = 0.16;
       this.master.connect(this.ctx.destination);
+      this.ensureRain();
     }
     if (this.ctx.state === 'suspended') await this.ctx.resume();
     this.start();
@@ -119,32 +122,70 @@ class AmbientAudio {
     this.enabled = enabled;
     if (!enabled) this.stop();
     else this.init().catch(() => {});
+    this.updateRain();
   }
   setMode(mode) {
     this.mode = mode;
     this.step = 0;
+    this.updateRain();
     if (this.enabled) this.start();
   }
   start() {
     if (!this.ctx || !this.enabled) return;
+    this.ensureRain();
     this.stop();
+    this.updateRain();
     this.playPhrase();
     this.timer = window.setInterval(() => this.playPhrase(), 4200);
   }
   stop() {
     if (this.timer) window.clearInterval(this.timer);
     this.timer = null;
+    if (this.rainGain && (!this.enabled || !this.ctx)) this.rainGain.gain.value = 0;
   }
+  ensureRain() {
+    if (!this.ctx || this.rainSource) return;
+    const length = this.ctx.sampleRate * 2;
+    const buffer = this.ctx.createBuffer(1, length, this.ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    let last = 0;
+    for (let i = 0; i < length; i += 1) {
+      const white = Math.random() * 2 - 1;
+      last = last * .985 + white * .015;
+      data[i] = last * .7 + white * .05;
+    }
+    const source = this.ctx.createBufferSource();
+    const filter = this.ctx.createBiquadFilter();
+    const gain = this.ctx.createGain();
+    source.buffer = buffer;
+    source.loop = true;
+    filter.type = 'bandpass';
+    filter.frequency.value = 1450;
+    filter.Q.value = .45;
+    gain.gain.value = 0;
+    source.connect(filter).connect(gain).connect(this.master);
+    source.start();
+    this.rainSource = source;
+    this.rainGain = gain;
+  }
+  updateRain() {
+    if (!this.rainGain || !this.ctx) return;
+    const levels = { warm:.012, cool:.022, fog:.030, cold:.040, healing:.009, dusk:.015, clear:.006 };
+    const target = this.enabled ? (levels[this.mode] || .012) : 0;
+    this.rainGain.gain.cancelScheduledValues(this.ctx.currentTime);
+    this.rainGain.gain.setTargetAtTime(target, this.ctx.currentTime, .8);
+  }
+
   playPhrase() {
     if (!this.ctx || !this.enabled) return;
     const palettes = {
-      warm: [261.63, 329.63, 392.0, 329.63],
-      cool: [220.0, 261.63, 293.66, 246.94],
-      fog: [196.0, 233.08, 261.63, 220.0],
-      cold: [174.61, 207.65, 233.08, 196.0],
-      healing: [261.63, 329.63, 440.0, 392.0],
-      dusk: [220.0, 246.94, 293.66, 261.63],
-      clear: [293.66, 369.99, 440.0, 493.88]
+      warm: [293.66, 369.99, 440.00, 369.99],
+      cool: [246.94, 293.66, 369.99, 293.66],
+      fog: [220.00, 277.18, 329.63, 277.18],
+      cold: [196.00, 246.94, 293.66, 246.94],
+      healing: [293.66, 369.99, 440.00, 493.88],
+      dusk: [220.00, 261.63, 329.63, 293.66],
+      clear: [329.63, 415.30, 493.88, 554.37]
     };
     const notes = palettes[this.mode] || palettes.warm;
     const now = this.ctx.currentTime;
@@ -162,6 +203,33 @@ class AmbientAudio {
     });
     this.step += 1;
   }
+  playDialogueCue(speaker = '') {
+    if (!this.ctx || !this.enabled) return;
+    const profiles = {
+      '苏婉': [293.66, 369.99],
+      '周满': [196.00, 246.94],
+      '老更夫': [174.61, 220.00],
+      '林砚': [246.94, 329.63]
+    };
+    const notes = profiles[speaker] || [246.94, 293.66];
+    const now = this.ctx.currentTime;
+    notes.forEach((freq, index) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      const filter = this.ctx.createBiquadFilter();
+      osc.type = index ? 'sine' : 'triangle';
+      osc.frequency.setValueAtTime(freq, now + index * .34);
+      filter.type = 'lowpass';
+      filter.frequency.value = 1200;
+      gain.gain.setValueAtTime(.0001, now + index * .34);
+      gain.gain.exponentialRampToValueAtTime(.025, now + index * .34 + .025);
+      gain.gain.exponentialRampToValueAtTime(.0001, now + index * .34 + .85);
+      osc.connect(filter).connect(gain).connect(this.master);
+      osc.start(now + index * .34);
+      osc.stop(now + index * .34 + .9);
+    });
+  }
+
   playBell(pattern) {
     if (!this.ctx || !this.enabled) return;
     const now = this.ctx.currentTime;
@@ -314,7 +382,7 @@ function showCover() {
   els.gameShell.hidden = true;
   els.coverScreen.hidden = false;
   els.continueBtn.hidden = !state.started;
-  els.newGameBtn.textContent = state.started ? '重新归乡' : '开始归乡';
+  els.newGameBtn.textContent = state.started ? '重新归乡' : '入堂启卷';
 }
 
 function applySettings() {
@@ -329,8 +397,8 @@ function applySettings() {
 
 function updateAudioButton() {
   els.audioBtn.setAttribute('aria-pressed', String(state.audioEnabled));
-  els.audioBtn.querySelector('.action-text').textContent = state.audioEnabled ? '音效开' : '音效关';
-  els.audioBtn.title = state.audioEnabled ? '关闭背景音乐与环境声' : '开启背景音乐与环境声';
+  els.audioBtn.querySelector('.action-text').textContent = state.audioEnabled ? '雨声开' : '雨声关';
+  els.audioBtn.title = state.audioEnabled ? '关闭琴音、雨声与环境声' : '开启琴音、雨声与环境声';
 }
 
 function renderAll() {
@@ -405,10 +473,11 @@ function renderChapter() {
   if (meta.id === 3) renderChapter3();
   if (meta.id === 4) renderChapter4();
   if (meta.id === 5) renderChapter5();
+  if (state.audioEnabled) window.setTimeout(() => audio.playDialogueCue(els.speakerName.textContent), 120);
 }
 
 function toChineseNumber(n) { return ['零','一','二','三','四','五'][n] || String(n); }
-function sceneCaptionForChapter(ch) { return ['','青溪镇 · 晚舟堂','青溪镇 · 废弃私塾','青溪镇 · 老渡口','后山 · 无名药庐','青溪镇 · 晚舟堂庭院'][ch]; }
+function sceneCaptionForChapter(ch) { return ['','青溪镇 · 晚舟堂檐下','青溪镇 · 旧私塾雨窗','青溪镇 · 石桥老渡','后山 · 雾隐药庐','青溪镇 · 桂雨庭院'][ch]; }
 
 function setTheme(theme, mood) {
   [...document.body.classList].filter(c => c.startsWith('theme-')).forEach(c => document.body.classList.remove(c));
@@ -418,16 +487,16 @@ function setTheme(theme, mood) {
 }
 
 function renderChapter1() {
-  setTheme('warm','暖黄旧纸 · 晴日无风');
+  setTheme('warm','淡墨暖纸 · 檐雨初歇');
   els.portrait.className = 'portrait portrait-linyan';
   els.speakerName.textContent = '林砚';
   if (!hasPuzzle('c1-herbs')) {
     currentPuzzleId = 'c1-herbs';
-    els.speakerThought.textContent = '“我只是回来收屋，不打算替一个逃犯辩解。”';
+    els.speakerThought.textContent = '“晚辈只为收整旧宅而来。祖上的那桩污名，我原不愿再提。”';
     els.storyContent.innerHTML = `
-      <p>民国五十一年，青溪镇河道整改。祖宅将在七日后拆除，你受父亲之托回乡清点遗物。</p>
+      <p>民国四十一年，青溪镇河道整改。祖宅将在七日后拆除，你受父亲之托回乡清点遗物。</p>
       <p>守宅的苏婉阿婆替你推开药铺木门。屋里落了灰，药柜却被擦得很干净，像有人一直等着店主回来。</p>
-      <div class="dialogue"><span class="speaker">苏婉：</span>“书房钥匙收在药柜里。晚舟从不把钥匙放在没有章法的地方。”</div>
+      <div class="dialogue"><span class="speaker">苏婉：</span>“书房钥匙还在药柜里。晚舟做事，一向依四时章法，不肯乱放。”</div>
       <div class="document"><strong>《四季本草歌》</strong><br>春采辛夷，香先百草；夏取半夏，燥湿和中；秋收茯苓，安心利水；冬藏当归，养血归根。</div>`;
     els.objectiveText.textContent = '依照《四季本草歌》，按季节顺序开启药柜抽屉。';
     renderOrderPuzzle({
@@ -439,7 +508,7 @@ function renderChapter1() {
   }
   if (!hasPuzzle('c1-ledger')) {
     currentPuzzleId = 'c1-ledger';
-    els.speakerThought.textContent = '“长短刻痕不像装饰。祖父到底把什么藏进了这里？”';
+    els.speakerThought.textContent = '“这些长短刻痕，像是有意留给后来人的。祖父究竟要我看见什么？”';
     els.storyContent.innerHTML = `
       <p>抽屉里除了书房钥匙，还有三组长短不一的刻痕。你暂时无法辨认，只把它们抄进便笺。</p>
       <p>书房账桌上散着四张残页。镇上的旧说法是：林晚舟在修桥善款到位后，连夜携款潜逃。</p>
@@ -458,19 +527,19 @@ function renderChapter1() {
     return;
   }
   currentPuzzleId = 'c1-ledger';
-  els.speakerThought.textContent = '“他可能挪用了钱，却未必是为了自己。”';
-  els.storyContent.innerHTML = `<p>第一章线索已经整理完毕。账本没有证明林晚舟清白，却证明流言遗漏了一件关键事实：消失的善款被换成了药。</p><div class="dialogue"><span class="speaker">苏婉：</span>“镇东的旧私塾还留着晚舟当年的课案。若你真想查，别只听活人的话。”</div>`;
+  els.speakerThought.textContent = '“款项确曾移用，可那一船药材，未必是为私。”';
+  els.storyContent.innerHTML = `<p>第一章线索已经整理完毕。账本没有证明林晚舟清白，却证明流言遗漏了一件关键事实：消失的善款被换成了药。</p><div class="dialogue"><span class="speaker">苏婉：</span>“若真要查，便去镇东旧私塾。活人会避讳，旧纸不会。”</div>`;
   els.objectiveText.textContent = '前往废弃私塾，查找疫情与刻痕的来历。';
   renderContinueButton(2,'前往私塾');
 }
 
 function renderChapter2() {
-  setTheme('cool','微冷旧照 · 风声渐起');
+  setTheme('cool','青灰旧卷 · 细雨入窗');
   els.portrait.className = 'portrait portrait-zhouman';
   els.speakerName.textContent = '周满';
   if (!hasPuzzle('c2-stems')) {
     currentPuzzleId = 'c2-stems';
-    els.speakerThought.textContent = '“我借拆迁之名唤你回来，是因为有些旧账不能跟屋一起埋。”';
+    els.speakerThought.textContent = '“借拆屋之名请你归来，是因有些旧账，断不能同瓦砾一道埋了。”';
     els.storyContent.innerHTML = `<p>私塾荒废多年。镇长周满等在门口，手里拿着一串生锈的钥匙。他没有替林晚舟辩解，只说当年的课案被人故意打乱。</p><p>八张课案分别标着天干，纸角各圈出一个字。</p><div class="document"><strong>旧课案</strong><br>先生批注：“循甲乙之序，方见未说之事。”</div>`;
     els.objectiveText.textContent = '按天干顺序排列八张课案，读出圈字。';
     renderOrderPuzzle({
@@ -483,27 +552,27 @@ function renderChapter2() {
   }
   if (!hasPuzzle('c2-morse')) {
     currentPuzzleId = 'c2-morse';
-    els.speakerThought.textContent = '“晚舟学过电报。他总说，乱世里一句话能不能送到，可能就是一条命。”';
+    els.speakerThought.textContent = '“晚舟早年习过电报。他常说，乱世里一句话送得出去，便可能救下一条命。”';
     els.storyContent.innerHTML = `<p>课案夹层里藏着一页民用电报码。林晚舟年轻时曾在邮电局学习，药柜里的长短刻痕终于有了解法。</p><p>短痕记作“·”，长痕记作“-”。第一章记录的三组符号是：</p><div class="document"><strong>-·--　/　·-　/　---</strong></div>`;
     els.objectiveText.textContent = '使用摩斯对照表，翻译药柜刻痕。';
     renderMorsePuzzle();
     return;
   }
   currentPuzzleId = 'c2-morse';
-  els.speakerThought.textContent = '“刻痕译成了‘药’。这不是完整地点，还缺另一半。”';
-  els.storyContent.innerHTML = `<p>刻痕译为 YAO。周满提到，当年渡口更夫会用长短钟声替药铺传讯，旧钟册至今还在。</p><div class="dialogue"><span class="speaker">周满：</span>“去渡口吧。那一夜，钟响得比任何时候都急。”</div>`;
+  els.speakerThought.textContent = '“刻痕只得一字——药。地点尚缺半句。”';
+  els.storyContent.innerHTML = `<p>刻痕译为 YAO。周满提到，当年渡口更夫会用长短钟声替药铺传讯，旧钟册至今还在。</p><div class="dialogue"><span class="speaker">周满：</span>“沿河往渡口去罢。那一夜，钟声穿雨，比哪一年都急。”</div>`;
   els.objectiveText.textContent = '前往老渡口，寻找与“药”相连的地点。';
   renderContinueButton(3,'前往渡口');
 }
 
 function renderChapter3() {
   const reversed = hasPuzzle('c3-tablet');
-  setTheme(reversed ? 'fog' : 'cool', reversed ? '灰雾压境 · 认知动摇' : '阴云聚拢 · 江风渐紧');
+  setTheme(reversed ? 'fog' : 'cool', reversed ? '墨雾漫江 · 旧说动摇' : '烟雨渡口 · 钟声隔水');
   els.portrait.className = 'portrait portrait-zhouman';
   els.speakerName.textContent = '老更夫';
   if (!hasPuzzle('c3-bell')) {
     currentPuzzleId = 'c3-bell';
-    els.speakerThought.textContent = '“那夜药箱装了三船。林掌柜只说，人命比桥急。”';
+    els.speakerThought.textContent = '“那一夜装了三船药箱。林掌柜只留一句：桥可缓，人命不可缓。”';
     els.storyContent.innerHTML = `<p>旧钟亭临水而立。钟册把每次敲击记作短点与长划，恰好可以使用私塾找到的对照表。</p><p>最后一行被红笔圈住：</p><div class="document"><strong>.... --- ..-　/　... .... .- -.</strong></div>`;
     els.objectiveText.textContent = '听取或阅读钟鸣序列，翻译隐藏地点。';
     renderBellPuzzle();
@@ -511,15 +580,15 @@ function renderChapter3() {
   }
   if (!hasPuzzle('c3-tablet')) {
     currentPuzzleId = 'c3-tablet';
-    els.speakerThought.textContent = '“功德碑正面骂他，背面却像是他留给后来人的一句话。”';
+    els.speakerThought.textContent = '“碑前尽是骂名，碑后却像留着一句无人敢读的话。”';
     els.storyContent.innerHTML = `<p>钟讯译为“后山”。你们在渡口功德碑背面发现被灰浆盖住的刻字。三处字句残缺，需要结合账本与更夫证词补全。</p><div class="document"><strong>____，____，____。</strong><br>旁注：桥材可以再等，疫病不会等人。</div>`;
     els.objectiveText.textContent = '补全功德碑后的三句暗刻。';
     renderTabletPuzzle();
     return;
   }
   currentPuzzleId = 'c3-tablet';
-  els.speakerThought.textContent = '“桥缓建，人先救，罪我一人担。”';
-  els.storyContent.innerHTML = `<p>第一层真相显现：林晚舟没有把善款据为己有。他用钱买药，救了山中疫民。</p><p>但新的疑问更沉重——如果只是救人，为什么他不解释，反而任由“卷款潜逃”的骂名落在自己身上？</p><div class="dialogue"><span class="speaker">周满：</span>“后山药庐里，有几封从未寄出的家书。答案比你想的更难承受。”</div>`;
+  els.speakerThought.textContent = '“桥缓建，人先救；若有罪责，我一人担。”';
+  els.storyContent.innerHTML = `<p>第一层真相显现：林晚舟没有把善款据为己有。他用钱买药，救了山中疫民。</p><p>但新的疑问更沉重——如果只是救人，为什么他不解释，反而任由“卷款潜逃”的骂名落在自己身上？</p><div class="dialogue"><span class="speaker">周满：</span>“后山药庐尚存几封未寄家书。只是纸上之言，未必比流言轻。”</div>`;
   els.objectiveText.textContent = '进入后山药庐，查明林晚舟为何主动消失。';
   renderContinueButton(4,'进入后山');
 }
@@ -531,7 +600,7 @@ function renderChapter4() {
   els.speakerName.textContent = kinship ? '苏婉' : '林砚';
   if (!hasPuzzle('c4-letters')) {
     currentPuzzleId = 'c4-letters';
-    els.speakerThought.textContent = '“祖父不是突然消失。他一步一步安排好了所有人的退路。”';
+    els.speakerThought.textContent = '“祖父并非仓皇出走。他把旁人的退路安排妥当，才独自隐入山中。”';
     els.storyContent.innerHTML = `<p>药庐桌上有六封无日期家书。信中没有明确年月，只有冰河、清明、梅雨、桂花、初雪与次年惊蛰等季节线索。</p><p>若能复原顺序，就能看清林晚舟从筹桥到消失的完整决定。</p>`;
     els.objectiveText.textContent = '依据季节、疫情与修桥进度，排列六封家书。';
     renderOrderPuzzle({
@@ -551,15 +620,15 @@ function renderChapter4() {
   }
   if (!hasPuzzle('c4-relics')) {
     currentPuzzleId = 'c4-relics';
-    els.speakerThought.textContent = '“信的末尾反复提到苏婉、孩子与半枚银锁。阿婆为什么从未告诉我？”';
-    els.storyContent.innerHTML = `<p>药庐木箱里留着半枚银锁、一张母子旧照、几页药方和桂花糕方。苏婉阿婆此时赶到门口，颈间同样挂着半枚银锁。</p><div class="dialogue"><span class="speaker">苏婉：</span>“有些身份一旦说出口，就会把晚舟替大家挡下的祸，再引回来。”</div>`;
+    els.speakerThought.textContent = '“信尾屡次提到苏婉、幼子与半枚银锁。阿婆为何守了半生，仍不肯相认？”';
+    els.storyContent.innerHTML = `<p>药庐木箱里留着半枚银锁、一张母子旧照、几页药方和桂花糕方。苏婉阿婆此时赶到门口，颈间同样挂着半枚银锁。</p><div class="dialogue"><span class="speaker">苏婉：</span>“有些名分一旦说破，晚舟替众人挡下的祸，怕要循声回来。”</div>`;
     els.objectiveText.textContent = '把四件遗物与阿婆身上的对应细节配对。';
     renderRelicPuzzle();
     return;
   }
   currentPuzzleId = 'c4-relics';
-  els.speakerThought.textContent = '“我看着你长大，却不敢让你叫我一声祖母。”';
-  els.storyContent.innerHTML = `<p>第三层真相终于落地。苏婉不是受托守宅的远亲，而是林晚舟的妻子、你的亲祖母。</p><p>她隐姓守了二十年，不是因为不想相认，而是担心旧案重启，牵连林家后人，也让林晚舟用一生换来的平安失去意义。</p><div class="dialogue"><span class="speaker">苏婉：</span>“砚儿，真相是你的了。怎样让它留下，也该由你决定。”</div>`;
+  els.speakerThought.textContent = '“我看着你长大，却不敢应你一声祖母。这一声，足足迟了二十年。”';
+  els.storyContent.innerHTML = `<p>第三层真相终于落地。苏婉不是受托守宅的远亲，而是林晚舟的妻子、你的亲祖母。</p><p>她隐姓守了二十年，不是因为不想相认，而是担心旧案重启，牵连林家后人，也让林晚舟用一生换来的平安失去意义。</p><div class="dialogue"><span class="speaker">苏婉：</span>“砚儿，这卷旧事如今交到你手里。如何留下，便由你落笔。”</div>`;
   els.objectiveText.textContent = '回到晚舟堂，整理完整证据链并决定旧案的去向。';
   renderContinueButton(5,'返回晚舟堂');
 }
@@ -570,14 +639,14 @@ function renderChapter5() {
   els.speakerName.textContent = '林砚';
   if (!hasPuzzle('c5-chain')) {
     currentPuzzleId = 'c5-chain';
-    els.speakerThought.textContent = '“只有把每个结论都放回证据上，真相才不会变成另一种流言。”';
+    els.speakerThought.textContent = '“每一句结论都须有物证相托，否则所谓真相，也不过是另一场流言。”';
     els.storyContent.innerHTML = `<p>你把账本、课案、钟册、碑文、家书与遗物铺满堂屋。周满提出最后的要求：不要凭感动替林晚舟正名，要让每条结论都能被证据支撑。</p><p>整理完成后，你将决定是否公开旧案。三个选择都要付出代价，也没有一个答案能替所有人消除遗憾。</p>`;
     els.objectiveText.textContent = '为三条核心证据链选择正确结论。';
     renderFinalChainPuzzle();
     return;
   }
   currentPuzzleId = 'c5-chain';
-  els.speakerThought.textContent = state.ending ? endingThought(state.ending) : '“正名、守秘，或让善意继续活在人间。”';
+  els.speakerThought.textContent = state.ending ? endingThought(state.ending) : '“立碑、封卷，抑或把善意留在寻常烟火里。”';
   els.storyContent.innerHTML = `<p>证据链已经闭合：</p><div class="document">① 修桥款流向药材，钟册与疫情记录互证——所谓卷款，实为救灾。<br>② 家书、官差文书与碑后暗刻互证——所谓逃亡，实为自污保镇。<br>③ 半枚银锁、笔迹与襁褓互证——守宅苏婉，是林家真正的祖母。</div><p>${state.ending ? '你已经作出过一次选择。仍可回看另外两种可能，它们不会覆盖已保存的首次结局。' : '现在，旧案将以怎样的方式留在青溪？'}</p>`;
   els.objectiveText.textContent = state.ending ? '回看结局，或重新审视其他选择。' : '选择你认为最合适的处理方式。';
   renderEndingChoices();
@@ -707,15 +776,15 @@ function renderEndingChoices() {
 function showEnding(type) {
   const endings = {
     public: {
-      tag:'结局一 · 立碑正名', title:'天光之下', theme:'clear', bg:'assets/scene_courtyard.svg',
+      tag:'结局一 · 立碑正名', title:'天光之下', theme:'clear', bg:'assets/ink_courtyard.webp',
       text:'你将账本、家书与官差文书交给省城报馆。林晚舟的名字终于从“卷款逃犯”改回“青溪义士”。碑前来的人很多，有敬意，也有猎奇。苏婉站在人群外，没有上前。她说，晚舟若还在，大概只会问桥是否牢、药是否够。你明白，正名抚平了一个名字，却无法让往事重新安静。'
     },
     silent: {
-      tag:'结局二 · 沉默守秘', title:'薄暮无碑', theme:'dusk', bg:'assets/scene_courtyard.svg',
+      tag:'结局二 · 沉默守秘', title:'薄暮无碑', theme:'dusk', bg:'assets/ink_courtyard.webp',
       text:'你没有公开旧案，只把证据封存在林家木箱。晚舟堂被修好，苏婉终于可以在院里被你叫一声祖母。镇民仍在旧碑前重复当年的说法，你偶尔想辩解，最终只是把药铺重新开门。这个选择保护了活着的人，也让一个名字继续承受误解。'
     },
     legacy: {
-      tag:'结局三 · 烟火人间', title:'善意有后来', theme:'healing', bg:'assets/scene_courtyard.svg',
+      tag:'结局三 · 烟火人间', title:'善意有后来', theme:'healing', bg:'assets/ink_courtyard.webp',
       text:'你没有为林晚舟塑一尊无瑕的像，也没有把真相锁回箱底。药庐成为义诊室，晚舟堂的一角陈列经过隐私处理的旧账与药方。孩子们知道，曾有人让桥晚建一年，让一村人多活许多年。苏婉在桂花树下教你做糕。故事不再只是碑上的定论，而成为镇上继续发生的善意。'
     }
   };
@@ -816,7 +885,7 @@ function resetGame() {
   els.gameShell.hidden = true;
   els.coverScreen.hidden = false;
   els.continueBtn.hidden = true;
-  els.newGameBtn.textContent = '开始归乡';
+  els.newGameBtn.textContent = '入堂启卷';
   [...document.body.classList].filter(c => c.startsWith('theme-')).forEach(c => document.body.classList.remove(c));
   document.body.classList.add('theme-cover');
   audio.stop();
@@ -866,7 +935,7 @@ function init() {
   loadState();
   els.notesArea.value = state.notes;
   els.continueBtn.hidden = !state.started;
-  els.newGameBtn.textContent = state.started ? '重新归乡' : '开始归乡';
+  els.newGameBtn.textContent = state.started ? '重新归乡' : '入堂启卷';
   applySettings();
   setupEvents();
   if (window.Paywall) window.Paywall._syncSupportButton(window.Paywall.hasPaid());

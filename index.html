@@ -3,12 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#342a22">
+  <meta name="theme-color" content="#dbe1dc">
   <meta name="description" content="《晚舟堂：青溪旧事》民国乡土多结局网页解谜游戏">
   <title>晚舟堂：青溪旧事</title>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="paywall.css">
+  <link rel="stylesheet" href="ink-style.css">
 </head>
 <body class="theme-cover">
   <div id="weatherLayer" class="weather-layer" aria-hidden="true">
@@ -16,19 +17,19 @@
   </div>
 
   <section id="coverScreen" class="cover-screen" aria-labelledby="gameTitle">
-    <div class="cover-art" role="img" aria-label="暮色中的江南药铺晚舟堂，院中有桂树与一位守门老人"></div>
+    <div class="cover-art" role="img" aria-label="烟雨中的青溪水巷、石桥与乌篷船，远处可见晚舟堂所在的白墙黛瓦"></div>
     <div class="cover-shade"></div>
     <div class="cover-copy">
-      <p class="eyebrow">民国乡土 · 叙事解谜 · 多结局</p>
+      <p class="eyebrow">烟雨江南 · 民国乡土 · 叙事解谜</p>
       <h1 id="gameTitle">晚舟堂</h1>
       <p class="subtitle">青溪旧事</p>
       <p class="cover-intro">民国二十一年，修桥善款失踪，百年药铺一夜关门。二十年后，你回到青溪镇收拾祖宅，却发现那桩“卷款潜逃”的旧案，从来没有真正结束。</p>
       <div class="cover-actions">
-        <button id="newGameBtn" class="primary-btn">开始归乡</button>
-        <button id="continueBtn" class="secondary-btn" hidden>继续调查</button>
+        <button id="newGameBtn" class="primary-btn">入堂启卷</button>
+        <button id="continueBtn" class="secondary-btn" hidden>续读旧案</button>
       </div>
-      <button id="coverSettingsBtn" class="text-btn" aria-haspopup="dialog">设置与存档</button>
-      <p class="cover-note">建议佩戴耳机。音乐与环境声均可随时关闭。</p>
+      <button id="coverSettingsBtn" class="text-btn" aria-haspopup="dialog">案卷与设置</button>
+      <p class="cover-note">建议佩戴耳机，在雨声、橹声与钟音中慢慢翻阅旧事。</p>
     </div>
   </section>
 
@@ -42,7 +43,7 @@
         </div>
       </div>
       <div class="top-actions">
-        <button id="audioBtn" class="top-action" aria-pressed="true"><span aria-hidden="true">♫</span><span class="action-text">音效开</span></button>
+        <button id="audioBtn" class="top-action" aria-pressed="true"><span aria-hidden="true">♫</span><span class="action-text">雨声开</span></button>
         <button id="hintBtn" class="top-action" aria-label="打开免费分级提示"><span aria-hidden="true">灯</span><span class="action-text">免费提示</span></button>
         <button id="supportBtn" class="top-action" aria-label="支持作者 1 元"><span aria-hidden="true">赏</span><span class="action-text">支持作者 1元</span></button>
         <button id="notesBtn" class="top-action"><span aria-hidden="true">笺</span><span class="action-text">便笺</span></button>
@@ -63,9 +64,9 @@
 
       <section class="main-stage" aria-live="polite">
         <div id="sceneFrame" class="scene-frame">
-          <img id="sceneImage" src="assets/scene_shop.svg" alt="晚舟堂旧药铺内景">
-          <div id="sceneCaption" class="scene-caption">青溪镇 · 晚舟堂</div>
-          <div id="sceneMood" class="scene-mood">暖黄旧纸 · 晴日无风</div>
+          <img id="sceneImage" src="assets/ink_shop.webp" alt="晚舟堂旧药铺内景">
+          <div id="sceneCaption" class="scene-caption">青溪镇 · 晚舟堂檐下</div>
+          <div id="sceneMood" class="scene-mood">淡墨暖纸 · 檐雨初歇</div>
         </div>
 
         <section class="story-panel">
